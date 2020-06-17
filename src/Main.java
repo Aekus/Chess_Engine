@@ -22,14 +22,12 @@ public class Main {
     static Scanner stdin = new Scanner(System.in);
     static ArrayList<String> legalMoveSAN = new ArrayList<>();
     public static void main(String[] args) throws IllegalMoveException {
-        position = Position.createInitialPosition();
+        position = new Position("rn1q1k1r/3bbp2/pp5p/2ppP3/6p1/B3QN2/pN3PKP/R5R1 w - - 0 25");
         while(!position.isMate()) {
             printBoard(position.getFEN());
             doUserMove();
             printBoard(position.getFEN());
             doEngineMove();
-            reportStats();
-            resetCounts();
         }
     }
 
@@ -70,13 +68,15 @@ public class Main {
         } else {
             factor = position.getPlyNumber() - 30;
         }
-        while(System.currentTimeMillis() - time < 5000 + factor*20 && move.value != Double.MAX_VALUE && move.value != -Double.MAX_VALUE) {
+        while(System.currentTimeMillis() - time < 5000 && move.value != Double.MAX_VALUE && move.value != -Double.MAX_VALUE) {
             move = minimax(depth);
             positionTable.put(position, new Object[]{move.move, move.value, depth});
             depth++;
         }
         positionTable.clear();
         position.doMove(move.move);
+        reportStats();
+        resetCounts();
     }
 
     public static void printMoveList() {
@@ -134,6 +134,7 @@ public class Main {
                 position.doMove(testMove);
                 Node minPos = minimizing(depth - 1, alpha, beta, false, null);
                 double minValue = minPos.value;
+                //System.out.println(depth + " " + Move.getString(testMove) + " " + minValue);
                 if (minPos.move != (short) 0) {
                     Object[] minStored = positionTable.get(position);
                     if (minStored == null || (int) minStored[2] < depth - 1) {
@@ -157,6 +158,7 @@ public class Main {
                 position.doMove(m.move);
                 Node minPos = minimizing(depth - 1, alpha, beta, false, null);
                 double minValue = minPos.value;
+                //System.out.println(depth + " " + Move.getString(m.move) + " " + minValue);
                 if (minPos.move != (short) 0) {
                     Object[] minStored = positionTable.get(position);
                     if (minStored == null || (int) minStored[2] < depth - 1) {
@@ -183,6 +185,7 @@ public class Main {
             position.doMove(m);
             Node minPos = minimizing(depth - 1, alpha, beta, false, null);
             double minValue = minPos.value;
+            //System.out.println(depth + " " + Move.getString(m) + " " + minValue);
             if (minPos.move != (short) 0) {
                 Object[] minStored = positionTable.get(position);
                 if (minStored == null || (int) minStored[2] < depth - 1) {
@@ -198,7 +201,7 @@ public class Main {
             if (alpha >= beta) {
                 break;
             }
-    }
+        }
         return new Node(bestMove, currBest);
     }
 
@@ -211,8 +214,8 @@ public class Main {
             fromMemory++;
             return new Node((short) stored[0], (double) stored[1]);
         }
-        double currBest = Double.MAX_VALUE;
         short[] movelist = position.getAllMoves();
+        double currBest = Double.MAX_VALUE;
         boolean found = false;
         if (stored != null) {
             short testMove = (short) stored[0];
@@ -226,6 +229,7 @@ public class Main {
                 position.doMove(testMove);
                 Node maxPos = maximizing(depth - 1, alpha, beta, false, null);
                 double maxValue = maxPos.value;
+                //System.out.println(depth + " " + Move.getString(testMove) + " " + maxValue);
                 if (maxPos.move != (short) 0) {
                     Object[] maxStored = positionTable.get(position);
                     if (maxStored == null || (int) maxStored[2] < depth - 1) {
@@ -249,6 +253,7 @@ public class Main {
                 position.doMove(m.move);
                 Node maxPos = maximizing(depth - 1, alpha, beta, false, null);
                 double maxValue = maxPos.value;
+                //System.out.println(depth + " " + Move.getString(m.move) + " " + maxValue);
                 if (maxPos.move != (short) 0) {
                     Object[] maxStored = positionTable.get(position);
                     if (maxStored == null || (int) maxStored[2] < depth - 1) {
@@ -275,6 +280,7 @@ public class Main {
             position.doMove(m);
             Node maxPos = maximizing(depth - 1, alpha, beta, false, null);
             double maxValue = maxPos.value;
+            //System.out.println(depth + " " + Move.getString(m) + " " + maxValue);
             if (maxPos.move != (short) 0) {
                 Object[] maxStored = positionTable.get(position);
                 if (maxStored == null || (int) maxStored[2] < depth - 1) {
@@ -288,7 +294,7 @@ public class Main {
             }
             beta = min(beta, currBest);
             if (alpha >= beta) {
-                return new Node(bestMove, currBest);
+                break;
             }
         }
         return new Node(bestMove, currBest);
@@ -296,10 +302,10 @@ public class Main {
 
     public static Node simpleFindMax(double alpha, double beta, boolean firstMove) throws IllegalMoveException {
         if (position.isMate()) {
-            return new Node((short) 0, -Double.MAX_VALUE);
+            return new Node((short) 0, heuristic(position));
         }
         if (position.isStaleMate()) {
-            return new Node((short) 0, 0);
+            return new Node((short) 0, heuristic(position));
         }
         Object[] stored = positionTable.get(position);
         if (stored != null) {
@@ -319,8 +325,9 @@ public class Main {
         for (short m : capturingList) {
             minimaxNodeCount++;
             position.doMove(m);
-            Node minPos = quiescence(alpha, beta, posVal, Double.MAX_VALUE, false);
+            Node minPos = quiescence(alpha, beta, Double.MAX_VALUE, posVal, false);
             double minValue = minPos.value;
+            //System.out.println(0 + " " + Move.getString(m) + " " + minValue);
             position.undoMove();
             if (firstMove) {
                 nextMoves.add(new Node(m, minValue));
@@ -338,10 +345,11 @@ public class Main {
             minimaxNodeCount++;
             position.doMove(m);
             posVal = heuristic(position);
+            //System.out.println(0 + " " + Move.getString(m) + " " + posVal);
             if (firstMove) {
                 nextMoves.add(new Node(m, posVal));
             }
-            if (posVal >= currBest) {
+            if (posVal > currBest) {
                 bestMove = m;
                 currBest = posVal;
             }
@@ -356,10 +364,10 @@ public class Main {
 
     public static Node SimpleFindMin(double alpha, double beta, boolean firstMove) throws IllegalMoveException {
         if (position.isMate()) {
-            return new Node((short) 0, Double.MAX_VALUE);
+            return new Node((short) 0, heuristic(position));
         }
         if (position.isStaleMate()) {
-            return new Node((short) 0, 0.0);
+            return new Node((short) 0, heuristic(position));
         }
         Object[] stored = positionTable.get(position);
         if (stored != null) {
@@ -374,13 +382,14 @@ public class Main {
         } else {
             bestMove = noncapturingList[0];
         }
-        double posVal = heuristic(position);
         double currBest = Double.MAX_VALUE;
+        double posVal = heuristic(position);
         for (short m : capturingList) {
             minimaxNodeCount++;
             position.doMove(m);
-            Node maxPos = quiescence(alpha, beta, -Double.MAX_VALUE, posVal, true);
+            Node maxPos = quiescence(alpha, beta, posVal, -Double.MAX_VALUE, true);
             double maxValue = maxPos.value;
+            //System.out.println(0 + " " + Move.getString(m) + " " + maxValue);
             position.undoMove();
             if (firstMove) {
                 nextMoves.add(new Node(m, maxValue));
@@ -398,14 +407,15 @@ public class Main {
             minimaxNodeCount++;
             position.doMove(m);
             posVal = heuristic(position);
+            //System.out.println(0 + " " + Move.getString(m) + " " + posVal);
             if (firstMove) {
                 nextMoves.add(new Node(m, posVal));
             }
-            position.undoMove();
             if (posVal < currBest) {
                 bestMove = m;
                 currBest = posVal;
             }
+            position.undoMove();
             beta = min(beta, currBest);
             if (alpha >= beta) {
                 return new Node(bestMove, currBest);
@@ -430,11 +440,11 @@ public class Main {
         }
         if (maximizing) {
             double currBest = -Double.MAX_VALUE;
-            if (posVal < maxLimit) {
+            if (posVal < minLimit) {
                 return new Node(bestMove, posVal);
             }
-            if (posVal > maxLimit) {
-                maxLimit = posVal;
+            if (posVal > minLimit) {
+                minLimit = posVal;
             }
             for (short m : captures) {
                 quiescenceNodeCount++;
@@ -454,11 +464,11 @@ public class Main {
             return new Node(bestMove, currBest);
         } else {
             double currBest = Double.MAX_VALUE;
-            if (posVal > minLimit) {
+            if (posVal > maxLimit) {
                 return new Node(bestMove, posVal);
             }
-            if (posVal < minLimit) {
-                minLimit = posVal;
+            if (posVal < maxLimit) {
+                maxLimit = posVal;
             }
             for (short m : captures) {
                 quiescenceNodeCount++;
@@ -487,6 +497,9 @@ public class Main {
                 return Double.MAX_VALUE;
             }
         }
+        if (p.isStaleMate()) {
+            return 0;
+        }
         double value = 0;
         int bbcount = 0;
         int wbcount = 0;
@@ -497,10 +510,10 @@ public class Main {
             int piece = p.getStone(i);
             switch (piece) {
                 case 5:
-                    value += -100 * (0.7 + 0.1 * (3.5 - (Math.abs(col - 4.5))) + (0.05 * (9 - row)) + passedPawnBonus(p, i%8, i/8, -1, 1));
+                    value += -100 * (0.7 + 0.1 * (3.5 - (Math.abs(col - 4.5))) + (0.05 * (9 - row)) + passedPawnBonus(p, i%8, i/8, -1, 0.5) + doubledPawnPenalty(p, i%8, i/8, -1, -0.15));
                     break;
                 case (-5):
-                    value += 100 * (0.7 + 0.1 * (3.5 - (Math.abs(col - 4.5))) + (0.05 * row) + passedPawnBonus(p, i%8, i/8, 1, 1));
+                    value += 100 * (0.7 + 0.1 * (3.5 - (Math.abs(col - 4.5))) + (0.05 * row) + passedPawnBonus(p, i%8, i/8, 1, 0.5) + doubledPawnPenalty(p, i%8, i/8, 1, -0.15));
                     break;
                 case 1:
                     value += -300 * (1.17 - distFromCenter / 3);
@@ -552,14 +565,22 @@ public class Main {
             }
         }
         if (bbcount == 2) {
-            value += -100;
+            value += -50;
         }
         if (wbcount == 2) {
-            value += 100;
+            value += 50;
         }
         return value;
     }
 
+    public static double doubledPawnPenalty(Position p, int col, int row, int dir, double bonus) {
+        for (int i = row*8 + col + 8*dir; i < 64 && i > -1; i = i + 8*dir) {
+            if (p.getStone(i) == -5*dir) {
+                return bonus;
+            }
+        }
+        return 0;
+    }
     public static double passedPawnBonus(Position p, int col, int row, int dir, double bonus) {
         for (int i = row*8 + col + 8*dir; i < 64 && i > -1; i = i + 8*dir) {
             if (p.getStone(i) == 5*dir) {
@@ -722,5 +743,6 @@ public class Main {
             }
             System.out.println();
         }
+        System.out.println();
     }
 }
