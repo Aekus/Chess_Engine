@@ -22,7 +22,7 @@ public class Main {
     static Scanner stdin = new Scanner(System.in);
     static ArrayList<String> legalMoveSAN = new ArrayList<>();
     public static void main(String[] args) throws IllegalMoveException {
-        position = new Position("rn1q1k1r/3bbp2/pp5p/2ppP3/6p1/B3QN2/pN3PKP/R5R1 w - - 0 25");
+        position = Position.createInitialPosition();
         while(!position.isMate()) {
             printBoard(position.getFEN());
             doUserMove();
@@ -148,7 +148,7 @@ public class Main {
                     return new Node(testMove, currBest);
                 }
             } else {
-                System.out.println("error");
+                //System.out.println("error");
             }
         }
         short bestMove;
@@ -243,7 +243,7 @@ public class Main {
                     return new Node(testMove, currBest);
                 }
             } else {
-                System.out.println("error");
+                //System.out.println("error");
             }
         }
         short bestMove;
