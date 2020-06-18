@@ -21,6 +21,7 @@ public class Main {
     static long time;
     static Scanner stdin = new Scanner(System.in);
     static ArrayList<String> legalMoveSAN = new ArrayList<>();
+    static boolean unicode = true;
     public static void main(String[] args) throws IllegalMoveException {
         position = Position.createInitialPosition();
         while(!position.isMate()) {
@@ -52,8 +53,14 @@ public class Main {
                 printMoveList();
                 doUserMove();
             } else {
-                System.out.println("Not a valid move, please try again. For a list of moves, type /moves");
-                doUserMove();
+                if (userMove.equals("/switch")) {
+                    unicode = false;
+                    printBoard(position.getFEN());
+                    doUserMove();
+                } else {
+                    System.out.println("Not a valid move, please try again. For a list of moves, type /moves");
+                    doUserMove();
+                }
             }
         }
     }
@@ -711,33 +718,43 @@ public class Main {
             System.out.println("-------------------------------------------");
             System.out.print("|");
             for (char p : pieces) {
-                if (p == 'k') {
-                    System.out.print(" \u2654 |");
-                } else if (p == 'q') {
-                    System.out.print(" \u2655 |");
-                } else if (p == 'r') {
-                    System.out.print(" \u2656 |");
-                } else if (p == 'b') {
-                    System.out.print(" \u2657 |");
-                } else if (p == 'n') {
-                    System.out.print(" \u2658 |");
-                } else if (p == 'p') {
-                    System.out.print(" \u2659 |");
-                } else if (p == 'K') {
-                    System.out.print(" \u265A |");
-                } else if (p == 'Q') {
-                    System.out.print(" \u265B |");
-                } else if (p == 'R') {
-                    System.out.print(" \u265C |");
-                } else if (p == 'B') {
-                    System.out.print(" \u265D |");
-                } else if (p == 'N') {
-                    System.out.print(" \u265E |");
-                } else if (p == 'P') {
-                    System.out.print(" \u265F |");
+                if (unicode) {
+                    if (p == 'k') {
+                        System.out.print(" \u2654 |");
+                    } else if (p == 'q') {
+                        System.out.print(" \u2655 |");
+                    } else if (p == 'r') {
+                        System.out.print(" \u2656 |");
+                    } else if (p == 'b') {
+                        System.out.print(" \u2657 |");
+                    } else if (p == 'n') {
+                        System.out.print(" \u2658 |");
+                    } else if (p == 'p') {
+                        System.out.print(" \u2659 |");
+                    } else if (p == 'K') {
+                        System.out.print(" \u265A |");
+                    } else if (p == 'Q') {
+                        System.out.print(" \u265B |");
+                    } else if (p == 'R') {
+                        System.out.print(" \u265C |");
+                    } else if (p == 'B') {
+                        System.out.print(" \u265D |");
+                    } else if (p == 'N') {
+                        System.out.print(" \u265E |");
+                    } else if (p == 'P') {
+                        System.out.print(" \u265F |");
+                    } else {
+                        for (int j = 0; j < Character.getNumericValue(p); j++) {
+                            System.out.print("    |");
+                        }
+                    }
                 } else {
-                    for (int j = 0 ; j < Character.getNumericValue(p); j++) {
-                        System.out.print("    |");
+                    if (Character.isDigit(p)) {
+                        for (int j = 0; j < Character.getNumericValue(p); j++) {
+                            System.out.print("   |");
+                        }
+                    } else {
+                        System.out.print(" " + p + " |");
                     }
                 }
             }
