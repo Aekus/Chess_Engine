@@ -68,6 +68,8 @@ public class Main {
                     MAX_TIME *= 2;
                     doUserMove();
                     break;
+                case "/quit":
+                    System.exit(0);
                 default:
                     System.out.println("Not a valid move, please try again. For a list of moves, type /moves");
                     doUserMove();
