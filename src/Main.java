@@ -11,10 +11,11 @@ import static java.lang.Math.min;
 
 public class Main {
     static Position position;
-    static int depth;
     static int minimaxNodeCount;
     static int quiescenceNodeCount;
     static int fromMemory;
+    static int global_depth;
+    static int MAX_TIME = 5000;
     static HashMap<Position, Object[]> positionTable = new HashMap<Position, Object[]>();
     static HashMap<Position, Node> PVTable = new HashMap<Position, Node>();
     static ArrayList<Node> nextMoves = new ArrayList<Node>();
@@ -49,36 +50,45 @@ public class Main {
         if (selectedMove != (short) 0) {
             position.doMove(selectedMove);
         } else {
-            if (userMove.equals("/moves")) {
-                printMoveList();
-                doUserMove();
-            } else {
-                if (userMove.equals("/switch")) {
-                    unicode = false;
+            switch (userMove) {
+                case "/moves":
+                    printMoveList();
+                    doUserMove();
+                    break;
+                case "/switch board":
+                    unicode = !unicode;
                     printBoard(position.getFEN());
                     doUserMove();
-                } else {
+                    break;
+                case "/faster":
+                    MAX_TIME /= 2;
+                    doUserMove();
+                    break;
+                case "/slower":
+                    MAX_TIME *= 2;
+                    doUserMove();
+                    break;
+                default:
                     System.out.println("Not a valid move, please try again. For a list of moves, type /moves");
                     doUserMove();
-                }
             }
         }
     }
 
     public static void doEngineMove() throws IllegalMoveException {
-        depth = 0;
+        global_depth = 0;
         Node move = new Node((short) 0,0);
+        Node prevmove = move;
         time = System.currentTimeMillis();
-        int factor = 0;
-        if (position.getPlyNumber() < 30) {
-            factor = 0;
-        } else {
-            factor = position.getPlyNumber() - 30;
-        }
-        while(System.currentTimeMillis() - time < 5000 && move.value != Double.MAX_VALUE && move.value != -Double.MAX_VALUE) {
-            move = minimax(depth);
-            positionTable.put(position, new Object[]{move.move, move.value, depth});
-            depth++;
+        while(move.value != Double.MAX_VALUE && move.value != -Double.MAX_VALUE) {
+            move = minimax(global_depth);
+            if (move.move == 0) {
+                move = prevmove;
+                break;
+            }
+            prevmove = move;
+            positionTable.put(position, new Object[]{move.move, move.value, global_depth});
+            global_depth++;
         }
         positionTable.clear();
         position.doMove(move.move);
@@ -118,6 +128,9 @@ public class Main {
     }
 
     public static Node maximizing(int depth, double alpha, double beta, boolean firstMove, ArrayList<Node> override) throws IllegalMoveException {
+        if (global_depth == depth && System.currentTimeMillis() - time > MAX_TIME) {
+            return new Node((short) 0,0);
+        }
         if (depth <= 0 || position.isMate() || position.isStaleMate()) {
             return simpleFindMax(alpha, beta, firstMove);
         }
@@ -213,6 +226,9 @@ public class Main {
     }
 
     public static Node minimizing(int depth, double alpha, double beta, boolean firstMove, ArrayList<Node> override) throws IllegalMoveException {
+        if (global_depth == depth && System.currentTimeMillis() - time > MAX_TIME) {
+            return new Node((short) 0,0);
+        }
         if (depth <= 0 || position.isMate() || position.isStaleMate()) {
             return SimpleFindMin(alpha, beta, firstMove);
         }
@@ -705,7 +721,7 @@ public class Main {
     public static void reportStats() {
         System.out.println(position.toString());
         System.out.println(heuristic(position));
-        System.out.println("depth: " + depth);
+        System.out.println("depth: " + global_depth);
         System.out.println("minimax nodes: " + minimaxNodeCount);
         System.out.println("quiescence nodes: " + quiescenceNodeCount);
         System.out.println("from memory: " + fromMemory);
