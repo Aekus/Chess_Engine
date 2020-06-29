@@ -1,11 +1,10 @@
 # Chess Engine
 For engine specifics, see https://aekusbhathal.com/proj3. 
 ## Running the code
-Simply go to https://github.com/Aekus/Chess_Engine/releases/tag/v1.0-alpha and download both game.exe and chesspresso-lib.jar into the same folder. The engine can then be run on command prompt with
+Simply go to https://github.com/Aekus/Chess_Engine/releases/tag/v1.0-alpha and download game.exe. Type the following command in your preferred terminal to run the game.
 ```{}
 $ game.exe
 ```
-
 ## Commands
 ### /moves
 Type this to see all legal moves
