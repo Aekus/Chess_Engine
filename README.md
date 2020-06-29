@@ -1,11 +1,9 @@
 # Chess Engine
 For engine specifics, see https://aekusbhathal.com/proj3. 
 ## Running the code
-After cloning, you can either run it in an IDE or directly on the terminal by typing the following after cd'ing into the Root folder:
-```
-$ javac -cp lib/Chesspresso-lib.jar src/*.java
-$ cd src
-$ java -cp ".;../lib/Chesspresso-lib.jar" Main
+Simply go to https://github.com/Aekus/Chess_Engine/releases/tag/v1.0-alpha and download both game.exe and chesspresso-lib.jar into the same folder. The engine can then be run on command prompt with
+```{}
+$ game.exe
 ```
 
 ## Commands
